@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<lib x:schema="/nop/schema/xlib.xdef">
+    <tags>
+        <GenLayout outputMode="xml">
+            <attr name="props"/>
+            <attr name="chunkSize" optional="true"/>
+
+            <source>
+                <c:script><![CDATA[
+                    function cell(prop){
+                        if(!prop) return
+                        return prop.name + '[' + prop.displayName?.$escapeJson()?.$replace(']','_') + ']'
+                    }
+
+                    function cell_gap(left,right){
+                        if(right == null)
+                           return
+                        if(left['ui:show']?.contains('S'))
+                           return '\n                '
+                        if(right['ui:show']?.contains('S'))
+                           return '\n                '
+                    }
+
+                    function gen_row(row){
+                        let s = "\n ";
+                        for(let i=0,n=row.length;i<n;i++){
+                            s += cell(row[i]) || '';
+                            if(i < n-1){
+                                s += ' ';
+                                s += cell_gap(row[i], row[i+1]) || '';
+                            }else if(i % 2 == 0){
+                                s += ' ';
+                            }
+                        }
+                        return s;
+                    }
+                ]]></c:script>
+                <layout>
+                    <c:choose>
+                        <when test="${props.length >= 10 or chunkSize}">
+                            <c:for var="row" items="${_.chunk(props,chunkSize || 2)}">
+                                <c:unit>${gen_row(row)}</c:unit>
+                            </c:for>
+                        </when>
+                        <otherwise>
+                            <c:for var="prop" items="${props}">
+                                <c:unit>${'\n'} ${cell(prop)}</c:unit>
+                            </c:for>
+                        </otherwise>
+                    </c:choose>
+                    <c:unit>${'\n'}</c:unit>
+                </layout>
+            </source>
+        </GenLayout>
+
+        <GenAsideFilterForm outputMode="xml">
+            <attr name="props"/>
+            <attr name="objMeta" implicit="true"/>
+
+            <source>
+                <form id="asideFilter" editMode="query" xgen-x:abstract="true" submitOnChange="true">
+                    <thisLib:GenLayout props="${props}" xpl:if="objMeta.containsTag('default-query')" chunkSize="4"/>
+                </form>
+            </source>
+        </GenAsideFilterForm>
+
+        <GenDefaultQueryForm outputMode="xml">
+            <attr name="props"/>
+            <attr name="objMeta" implicit="true"/>
+
+            <source>
+                <form id="query" editMode="query" title="查询条件" i18n-en:title="Query Condition"
+                      xgen-x:abstract="${!objMeta.containsTag('default-query')}">
+                    <thisLib:GenLayout props="${props}" xpl:if="objMeta.containsTag('default-query')" chunkSize="4"/>
+                </form>
+            </source>
+        </GenDefaultQueryForm>
+
+        <GenBatchUpdateForm outputMode="xml">
+            <attr name="supportUpdate" />
+            <attr name="objMeta" implicit="true" />
+
+            <source>
+                <form id="batchUpdate" editMode="edit" xgen-x:abstract="true" xpl:if="supportUpdate"
+                      title="修改-${objMeta.displayName}" i18n-en:title="Update ${objMeta['i18n-en:displayName']}">
+                </form>
+            </source>
+        </GenBatchUpdateForm>
+    </tags>
+</lib>

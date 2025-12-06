@@ -1,0 +1,66 @@
+<rule displayName="string" ruleName="string" ruleVersion="long" x:schema="/nop/schema/xdef.xdef"
+      xmlns:x="/nop/schema/xdsl.xdef"
+      xdef:name="RuleModel" xdef:model-name-prop="ruleName" xdef:model-version-prop="ruleVersion"
+      xmlns:xdef="/nop/schema/xdef.xdef" xdef:bean-package="io.nop.rule.core.model">
+
+    <description xdef:value="string"/>
+
+    <!--
+    在规则匹配前执行，可以用于初始化上下文对象
+    -->
+    <beforeExecute xdef:value="xpl"/>
+
+    <!--
+    无论规则是否成功匹配，都会执行到这里
+    -->
+    <afterExecute xdef:value="xpl"/>
+
+    <!--
+    @label 对当前判断条件的描述信息
+    @multiMatch: 是否允许匹配多个分支，默认为false，即只允许匹配一个分支
+    @leafIndex: 记录决策树的叶子节点在所有叶子节点中的顺序号
+    -->
+    <xdef:define xdef:name="RuleDecisionTreeModel" id="string" label="string" multiMatch="!boolean=false"
+                 leafIndex="!int=0">
+
+        <predicate xdef:value="filter-bean"/>
+
+        <children xdef:body-type="list" xdef:key-attr="id">
+            <child id="!string" xdef:ref="RuleDecisionTreeModel"/>
+        </children>
+
+        <!-- 当前判断分支所对应的业务描述 -->
+        <description xdef:value="string"/>
+
+        <output name="!var-name" xdef:ref="RuleOutputValueModel" xdef:unique-attr="name"/>
+
+    </xdef:define>
+
+    <input name="!var-name" xdef:ref="schema/var-define.xdef" computed="!boolean=false"
+           mandatory="!boolean=false" xdef:name="RuleInputDefineModel" xdef:unique-attr="name"/>
+
+
+    <!--
+    @aggregate 如果存在多个同名的输出时的汇总方式：max,min, sum等
+    @useWeight: 是否启用权重配置。如果启用，则存在变量名__weight的变量，类型为Double
+    -->
+    <output name="!var-name" xdef:ref="schema/var-define.xdef" mandatory="!boolean=false"
+            aggregate="enum:io.nop.rule.core.model.RuleAggregateMethod" useWeight="!boolean=false"
+            xdef:name="RuleOutputDefineModel" xdef:unique-attr="name"/>
+
+    <decisionMatrix xdef:name="RuleDecisionMatrixModel">
+        <rowDecider xdef:ref="RuleDecisionTreeModel" xdef:mandatory="true"/>
+        <colDecider xdef:ref="RuleDecisionTreeModel" xdef:mandatory="true"/>
+
+        <cells xdef:body-type="list" xdef:key-attr="pos">
+            <cell pos="!cell-pos" xdef:name="RuleTableCellModel">
+                <output name="!string" xdef:name="RuleOutputValueModel" xdef:unique-attr="name" value="string">
+                    <valueExpr xdef:value="xpl"/>
+                </output>
+            </cell>
+        </cells>
+    </decisionMatrix>
+
+    <decisionTree xdef:ref="RuleDecisionTreeModel"/>
+
+</rule>

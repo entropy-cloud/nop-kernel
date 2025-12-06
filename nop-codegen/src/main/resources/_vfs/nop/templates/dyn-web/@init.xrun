@@ -1,0 +1,21 @@
+<gen:DefineLoop xpl:lib="/nop/codegen/xlib/gen.xlib">
+    <c:script><![CDATA[
+       import io.nop.xlang.xmeta.SchemaLoader;
+
+       const metaInfos = metaResources.map(resource=>{
+            const objMeta = SchemaLoader.parseXMetaFromResource(resource)
+            return {
+                forEntity: objMeta['ext:model'] != 'api',
+                forApi: objMeta['ext:model'] == 'api',
+                baseObjName: resource.path.$fileNameNoExt().$firstPart('_'),
+                objName: resource.path.$fileNameNoExt(),
+                objMeta: objMeta
+           }
+        })
+
+        builder.defineGlobalVar("metaInfos",metaInfos);
+        builder.defineGlobalVar("moduleName",moduleId.replace('/','-'));
+        builder.defineLoopVar("metaInfo", "metaInfos");
+        builder.defineGlobalVar("moduleId",moduleId);
+    ]]></c:script>
+</gen:DefineLoop>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<sql-lib xdef:default-extends="/nop/core/defaults/default.sql-lib.xml"
+         xdef:name="SqlLibModel" xdef:bean-package="io.nop.orm.sql_lib"
+         x:schema="/nop/schema/xdef.xdef" xdef:check-ns="dict"
+         xmlns:xdef="/nop/schema/xdef.xdef" xmlns:x="/nop/schema/xdsl.xdef" xmlns:dict="dict"
+>
+
+    <!--
+          @querySpace 指定查询空间，一般一个querySpace对应一个数据库。
+          @cacheKeyExpr 生成缓存key的表达式, 运行时可以根据传入的参数构造出缓存key，例如cacheKeyExpr="concat(x,'-',y)"
+          @sqlMethod 指定使用ISqlExecutor接口上的什么方法去执行此sql，具体可选项在SqlMethod枚举类中定义，
+          @rowType 可以指定返回结果对应的包装类名称。会按照字段别名映射到对象的属性上，
+          @timeout sql执行的超时时间。单位为毫秒
+          @fetchSize 设置jdbc的fetchSize为指定值
+          @dict:static sql语句返回字典项时使用。static表示为字典项为静态内容可以缓存起来，下次不用再次获取
+          @dict:valueType 字段项的值类型
+          @dict:normalized 字典项的显示文本是否已经经过规范化处理。
+          @ormEntityRefreshBehavior 当SQL语句返回实体数据，并且使用rowType来构建实体对象时所使用的更新策略
+          @disableSmartRowMapper 禁用SmartRowMapper机制。缺省情况下，如果只返回一列数据，比如String类型，会自动转换为单列的List<String>。
+             禁用SmartRowMapper之后会始终按照Map读取到行数据，然后再转型到rowType等。
+        -->
+    <xdef:define xdef:name="SqlItemModel" name="!var-name" displayName="string"
+                 rowType="class-name" sqlMethod="enum:io.nop.orm.sql_lib.SqlMethod"
+                 cacheName="string" cacheKeyExpr="expr" disableSmartRowMapper="!boolean=false"
+                 querySpace="string=default" fetchSize="int" timeout="int" disableLogicalDelete="!boolean=false"
+                 ormEntityRefreshBehavior="enum:io.nop.orm.sql_lib.OrmEntityRefreshBehavior=errorWhenDirty"
+                 xdef:bean-tag-prop="type"
+                 dict:static="boolean" dict:valueType="std-data-type" dict:normalized="boolean"
+    >
+
+        <description xdef:value="string"/>
+
+        <auth xdef:ref="/nop/schema/schema/auth.xdef"/>
+
+        <!--
+        验证sql正确性时采用的输入数据。当AppConfig.isDebugMode()为true时（调试模式），sql-lib加载后会自动验证sql语句语法正确。
+        -->
+        <validate-input xdef:value="xpl"/>
+
+        <!--
+        为sql查询语句补充列的类型信息，便于从ResultSet中抽取指定类型的数据，避免返回数据库引擎内部的数据类型
+        -->
+        <fields xdef:body-type="list" xdef:key-attr="name">
+            <!--
+            @as 如果指定了as，则重命名该字段值
+            @stdSqlType DataSet上提供了getBoolean等一系列读取方法，stdSqlType指定使用哪个方法去读取。
+            @stdDataType 如果指定这个属性，则从DataSet读取后会执行转型操作。比如按照DATETIME类型读取，但是转换为String返回等
+            -->
+            <field name="!string" as="string" stdSqlType="std-sql-type" stdDataType="std-data-type"
+                   xdef:name="SqlFieldModel">
+                <!--
+                 如果指定了computeExpr，则这个值不从数据库获取，直接在java中计算得到。计算表达式在所有其他字段值获取之后执行。
+                 -->
+                <computeExpr xdef:value="xpl-fn:(row,fieldModel)=>any"/>
+            </field>
+        </fields>
+
+        <!--
+        对应eql查询，获取到结果数据之后，会按照这里的配置自动批量加载结果对象上的关联属性
+        -->
+        <batchLoadSelection xdef:value="field-selection"/>
+
+        <arg xdef:name="SqlItemArgModel" xdef:unique-attr="name"
+             name="!var-name" displayName="string" mandatory="boolean" defaultValue="string">
+            <description xdef:value="string"/>
+            <schema xdef:ref="../schema/schema.xdef"/>
+        </arg>
+
+        <buildRowMapper xdef:value="xpl-fn:(sqlItemModel)=>any"/>
+
+        <buildResult xdef:value="xpl-fn:(row,sqlItemModel)=>any"/>
+
+    </xdef:define>
+
+    <fragments xdef:body-type="list" xdef:key-attr="id">
+        <!-- 用于保存可以被复用的SQL片段，在下面的sql配置中可以通过<sql:fragment id="xx" />这种标签函数来引用SQL片段  -->
+        <fragment id="!xml-name" xdef:value="xpl-sql" xdef:bean-body-prop="source" xdef:name="SqlFragmentModel"/>
+    </fragments>
+
+    <sqls xdef:body-type="list" xdef:key-attr="name" xdef:bean-child-name="sql"
+          xdef:bean-body-type="List&lt;io.nop.orm.sql_lib.SqlItemModel>">
+
+        <!--
+        @colNameCamelCase sql语句返回的列名是否按照下划线分隔变换成camelCase形式作为返回字段名
+        -->
+        <sql xdef:name="NativeSqlItemModel" name="!var-name" xdef:ref="SqlItemModel" colNameCamelCase="!boolean=false">
+            <source xdef:value="xpl-sql" xdef:mandatory="true"/>
+        </sql>
+
+        <eql name="!var-name" xdef:ref="SqlItemModel" xdef:name="EqlSqlItemModel"
+             allowUnderscoreName="!boolean=false" enableFilter="!boolean=false">
+            <source xdef:value="xpl-sql" xdef:mandatory="true"/>
+        </eql>
+
+        <!--
+        -->
+        <query name="!var-name" xdef:ref="SqlItemModel" xdef:name="QuerySqlItemModel">
+            <source xdef:value="xpl-node" xdef:mandatory="true"/>
+        </query>
+    </sqls>
+
+</sql-lib>

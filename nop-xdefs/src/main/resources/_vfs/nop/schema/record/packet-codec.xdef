@@ -1,0 +1,12 @@
+<codec x:schema="/nop/schema/xdef.xdef"
+       xmlns:x="/nop/schema/xdsl.xdef"
+       xmlns:xdef="/nop/schema/xdef.xdef"
+       xdef:name="PacketCodecModel" xdef:bean-package="io.nop.record.model"
+       xdef:ref="record-definitions.xdef" lengthEndian="enum:io.nop.commons.bytes.EndianKind"
+       lengthFieldLength="!int=0" lengthFieldOffset="!int=0" lengthAdjustment="!int=0"
+       lengthFieldCodec="string" initialBytesToStrip="!int=0" maxFrameLength="!int=0"
+>
+    <encodeTypeDecider xdef:value="xpl-fn:(msg)=>string"/>
+
+    <decodeTypeDecider xdef:value="xpl-fn:(input)=>string"/>
+</codec>

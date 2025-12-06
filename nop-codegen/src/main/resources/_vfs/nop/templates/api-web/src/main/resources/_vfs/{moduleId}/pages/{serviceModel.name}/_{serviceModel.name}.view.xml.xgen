@@ -1,0 +1,79 @@
+<view x:schema="/nop/schema/xui/xview.xdef"
+      xmlns:x="/nop/schema/xdsl.xdef">
+
+    <controlLib>/nop/web/xlib/control.xlib</controlLib>
+
+    <c:import from="/nop/codegen/xlib/web-gen.xlib"/>
+
+    <c:print>
+        <x:gen-extends>
+            <api-web:DefaultGenExtends xpl:lib="/nop/web/xlib/api-web.xlib" />
+        </x:gen-extends>
+    </c:print>
+
+    <forms>
+        <c:script><![CDATA[
+            let formNames = new Set();
+            serviceModel.methods.forEach(method=>{
+                const messageName = method.requestMessage.$simpleClassName();
+                if(apiModel.messages.getByKey(messageName))
+                    formNames.add(messageName)
+            });
+        ]]></c:script>
+        <c:for var="formName" items="${formNames}">
+            <form id="${formName}" editMode="edit">
+                <c:script>
+                    let message = apiModel.messages.getByKey(formName);
+                </c:script>
+                <objMeta>/${moduleId}/model/${serviceModel.name}/${message.name}.xmeta</objMeta>
+                <layout>
+                    <c:for var="field" items="${message?.fields}">
+                        ${field.name}
+                    </c:for>
+                </layout>
+
+                <cells>
+                    <c:for var="field" items="${message?.fields}">
+                        <cell id="${field.name}" label="${field.displayName}"/>
+                    </c:for>
+                </cells>
+            </form>
+        </c:for>
+
+    </forms>
+
+    <pages>
+        <c:for var="method" items="${serviceModel.methods}">
+            <simple name="${method.name}" form="${method.requestMessage.$simpleClassName()}">
+
+                <actions>
+                    <action id="${serviceModel.name}__${method.name}-cancel" label="@i18n:common.cancel|取消" actionType="cancel">
+                    </action>
+
+                    <action id="${serviceModel.name}__${method.name}-submit" label="@i18n:common.submit|提交" level="primary" actionType="ajax">
+                        <api url="/r/${serviceModel.name}__${method.name}">
+                            <adaptor>
+                                return {...payload,data:{ __result: JSON.stringify(payload.data || '',null,"  ") }}
+                            </adaptor>
+                        </api>
+
+                        <messages>
+                            <success>_</success>
+                        </messages>
+
+                        <feedback page="json-result" />
+                    </action>
+                </actions>
+            </simple>
+        </c:for>
+
+
+        <tabs name="main" tabsMode="vertical" mountOnEnter="true" unmountOnExit="true">
+            <c:for var="method" items="${serviceModel.methods}">
+                <tab name="${method.name}" page="${method.name}"
+                     title="${method.displayName || method.name}"/>
+            </c:for>
+        </tabs>
+
+    </pages>
+</view>

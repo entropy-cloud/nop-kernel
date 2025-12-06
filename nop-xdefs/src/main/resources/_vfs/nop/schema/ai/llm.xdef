@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+@rateLimit 为避免调用服务过于频繁，通过rateLimit指定每秒最多允许多少次请求。如果超过则会排队等待。
+@logMessage 如果设置为true，则会打印出所有请求和响应消息
+-->
+<llm x:schema="/nop/schema/xdef.xdef" xmlns:x="/nop/schema/xdsl.xdef"
+     xmlns:xdef="/nop/schema/xdef.xdef"
+     xdef:name="LlmModel" xdef:bean-package="io.nop.ai.core.model"
+     apiStyle="enum:io.nop.ai.core.model.ApiStyle"
+     defaultModel="string" logMessage="!boolean=true"
+     rateLimit="double" defaultRequestTimeout="long"
+     supportToolCalls="!boolean=false" apiKeyHeader="string"
+>
+
+    <!--
+    大模型服务所支持的模型列表。通过defaultModel来指定缺省使用的模型
+    -->
+    <supportModels xdef:value="csv-set"/>
+
+    <aliasMap xdef:value="string-map"/>
+
+    <models xdef:body-type="list" xdef:key-attr="name">
+        <model name="!string" xdef:name="LlmModelModel" maxTokensLimit="int" defaultMaxTokens="int"
+               enableThinkingPrompt="string" disableThinkingPrompt="string"
+               thinkStartMarker="string" thinkEndMarker="string"/>
+    </models>
+
+    <!--
+    服务的基础url，比如http://localhost:11342
+    -->
+    <baseUrl xdef:value="string"/>
+
+    <!--
+    聊天功能的服务端点，比如 /api/chat
+    -->
+    <chatUrl xdef:value="string"/>
+
+    <!--
+    单次生成服务断点，比如 /api/generate
+    -->
+    <generateUrl xdef:value="string"/>
+
+    <embedUrl xdef:value="string"/>
+
+    <request xdef:name="LlmRequestModel"
+             seedPath="prop-path"
+             topKPath="prop-path"
+             topPPath="prop-path"
+             temperaturePath="prop-path"
+             maxTokensPath="prop-path"
+             stopPath="prop-path"
+             contextLengthPath="prop-path"
+             thinkingPath="prop-path"
+
+    />
+
+    <response xdef:name="LlmResponseModel" xdef:mandatory="true"
+              rolePath="prop-path"
+              contentPath="!prop-path"
+              promptTokensPath="prop-path"
+              totalTokensPath="prop-path"
+              completionTokensPath="prop-path"
+              promptCacheHitTokensPath="prop-path"
+              promptCacheMissTokensPath="prop-path"
+              reasoningContentPath="prop-path"
+              errorPath="prop-path"
+              statusPath="prop-path"
+              toolCallsPath="prop-path"
+    />
+
+    <buildHttpRequest xdef:value="xpl-fn:(httpRequest,prompt,chatOptions)=>void"/>
+
+    <parseHttpResponse xdef:value="xpl-fn:(httpResponse,chatResponse, chatOptions)=>void"/>
+
+</llm>

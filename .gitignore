@@ -1,0 +1,83 @@
+#Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+.flattened-pom.xml
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# IntelliJ
+.idea
+*.ipr
+*.iml
+*.iws
+
+# NetBeans
+nb-configuration.xml
+
+# Visual Studio Code
+.vscode
+.factorypath
+
+# OSX
+.DS_Store
+
+# Vim
+*.swp
+*.swo
+
+# patch
+*.orig
+*.rej
+
+# Local environment
+.env
+
+*.debug.md
+
+# Plugin directory
+/.quarkus/cli/plugins/
+
+/nop-kernel/nop-antlr4/nop-antlr4-playground/gen
+/nop-kernel/nop-antlr4/nop-antlr4-playground/src/main/antlr4/imports/.antlr
+/nop-kernel/nop-antlr4/nop-antlr4-playground/src/main/antlr4/imports/gen
+/nop-kernel/nop-xlang/gen/antlr
+/nop-kernel/nop-xlang/gen
+/nop-kernel/nop-antlr4/nop-antlr4-tool/gen/antlr4/xlang
+/nop-dev-tools/nop-idea-plugin/.gradle/7.2
+/nop-dev-tools/nop-idea-plugin/build
+/nop-dev-tools/nop-idea-plugin/.gradle
+/nop-dev-tools/nop-idea-plugin/nop-idea-plugin.jar
+.antlr
+/nop-dev-tools/nop-idea-plugin/bin
+/log
+_dump
+/db
+/nop-kernel/nop-antlr4/gen
+/nop-kernel/nop-antlr4/nop-antlr4-xlang/src/main/antlr4/imports/gen
+/nop-kernel/nop-antlr4/nop-antlr4-xpath/src/main/antlr4/imports/gen
+
+package-lock.json
+node_modules/
+
+# KnoSys sites
+/.knosys/sites/default/source/_data/knosys/
+/.knosys/sites/default/source/_data/local/repos.yml
+/.knosys/sites/default/source/knosys/
+/.knosys/sites/default/source/_posts/*
+!/.knosys/sites/default/source/_posts/hello-world.md
+/.knosys/sites/default/themes/
+/.knosys/sites/default/public/
+/.knosys/sites/default/.deploy*/
+/.knosys/sites/default/_multiconfig.yml
+/.knosys/sites/default/Thumbs.db
+/.knosys/sites/default/db.json
+/.knosys/sites/default/package.json
+
+/nop-runner/nop-cli-jdk11/dependency-reduced-pom.xml

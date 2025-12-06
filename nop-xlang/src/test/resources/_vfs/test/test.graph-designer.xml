@@ -1,0 +1,62 @@
+<designer x:schema="/nop/schema/designer/graph-designer.xdef" editorType="oa-flow"
+          xmlns:x="/nop/schema/xdsl.xdef" xmlns:v="v">
+
+    <imports>
+        <import name="NodeTitleShell" from="@nop-chaos/plugin-dingflow"/>
+        <import name="NodeContent" from="@nop-chaos/plugin-dingflow"/>
+        <import name="ContentPlaceholder" from="@nop-chaos/plugin-dingflow"/>
+        <import name="NodeTitle" from="@nop-chaos/plugin-dingflow"/>
+    </imports>
+
+    <nodes>
+        <node name="start" icon="start-node" kind="start" label="Start">
+            <template>
+                <NodeTitleShell
+                        className="node-title start-node-title"
+                        v:style="{backgroundColor: material.color}">
+                    {{ t(material.label || '')}}
+                </NodeTitleShell>
+                <NodeContent className="content">
+                    <ContentPlaceholder v:text="t(material.info)"/>
+                    <i class="fas fa-angle-right arrow"/>
+                </NodeContent>
+            </template>
+        </node>
+
+        <node name="EndNode" icon="end-node" label="Finish" kind="end">
+            <template>
+                <EndNodeContainer>
+                    <div class="end-node-circle"/>
+                    <div class="end-node-text">@i18n:graph-designer.end-node</div>
+                </EndNodeContainer>
+            </template>
+        </node>
+
+        <node name="approver" label="Approver">
+            <template>
+                <NodeTitle
+                        v:node="node"
+                        v:material="material"
+                        v:closable="editable &amp;&amp; material.deletable"
+                        v:editable="editable"
+                />
+                <NodeContent className="content">
+                    <ContentPlaceholder v:text="t(material.info)"/>
+                    <i class="fas fa-angle-right arrow"/>
+                </NodeContent>
+            </template>
+        </node>
+
+        <node name="notifier" base="approver" label="Notifier"/>
+
+        <node name="condition" kind="condition" label="Condition">
+            <template>
+                <ConditionNodeTitle v:node="node" v:parent="parent" v:index="index" v:editable="editable"/>
+                <NodeContent className="content">
+                    <ContentPlaceholder v:text="t('pleaseSetCondition')" />
+                </NodeContent>
+            </template>
+        </node>
+
+    </nodes>
+</designer>

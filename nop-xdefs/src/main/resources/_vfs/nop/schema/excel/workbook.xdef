@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+ooxml的文档参考 http://officeopenxml.com/SSstyles.php
+
+-->
+<workbook x:schema="/nop/schema/xdef.xdef" xmlns:x="/nop/schema/xdsl.xdef" xmlns:xdef="/nop/schema/xdef.xdef"
+          xdef:bean-package="io.nop.excel.model" xdef:check-ns="qr"
+          xdef:name="ExcelWorkbook">
+
+    <props xdef:body-type="list" xdef:key-attr="name">
+        <prop name="!string" value="string" xdef:name="ExcelProperty"/>
+    </props>
+
+    <styles xdef:body-type="list" xdef:key-attr="id">
+        <!--
+        @rotate 旋转角度，从1到360
+        -->
+        <style id="!string" xdef:ref="style.xdef"/>
+    </styles>
+
+    <defaultFont xdef:ref="font.xdef"/>
+
+    <sheets xdef:body-type="list" xdef:key-attr="name">
+        <sheet name="!string" xdef:name="ExcelSheet" defaultColumnWidth="double" defaultRowHeight="double">
+            <table xdef:ref="excel-table.xdef"/>
+
+            <images xdef:body-type="list" xdef:key-attr="name">
+                <!--
+                @print 控制图片是否被打印。套打对应的背景图片不需要被打印
+                -->
+                <image name="!string" xdef:name="ExcelImage" imgType="string"
+                       print="!boolean=true" noChangeAspect="!boolean=false" rotateDegree="!double=0">
+                    <anchor xdef:name="ExcelClientAnchor"
+                            xdef:ref="anchor.xdef"
+                            type="enum:io.nop.excel.model.constants.ExcelAnchorType"/>
+                    <!-- data为对应图片数据 -->
+                    <data xdef:value="base64-bytes"/>
+                    <description xdef:value="string"/>
+                    <linkUrl xdef:value="string"/>
+                    <linkExpr xdef:value="report-expr"/>
+                    <testExpr xdef:value="xpl-predicate"/>
+                    <dataExpr xdef:value="report-expr"/>
+                </image>
+            </images>
+
+            <conditionalStyles xdef:body-type="list" xdef:key-attr="range">
+                <!--
+                当条件满足时，将对指定区间单元格的样式进行增量修改
+                -->
+                <conditionalStyle range="!string" xdef:name="ExcelConditionalStyle">
+                    <when xdef:ref="/nop/schema/query/filter.xdef"/>
+                    <style xdef:ref="style.xdef"/>
+                </conditionalStyle>
+            </conditionalStyles>
+
+            <annotations xdef:body-type="list" xdef:key-attr="range">
+                <!--
+                行区间的类型标注。例如标记表头，表旁，表尾等
+                -->
+                <annotation range="!string" type="!string" xdef:name="ExcelAnnotation"/>
+            </annotations>
+
+            <sheetOptions xdef:name="ExcelSheetOptions" splitHorizontal="int" splitVertical="int"
+                          fitToPage="!boolean=false"/>
+
+            <sheetProtection xdef:ref="sheet-protection.xdef" />
+
+            <dataValidations xdef:body-type="list" xdef:key-attr="id">
+                <!--
+                @allowBlank 是否允许为空
+                @showInputMessage 是否显示输入提示
+                @showErrorMessage 是否显示错误提示
+                @sqref 指定数据验证的单元格范围
+                -->
+                <dataValidation xdef:name="ExcelDataValidation" id="!string"
+                                type="!string" allowBlank="boolean" showInputMessage="boolean"
+                                showErrorMessage="boolean" sqref="!string">
+                    <formula1 xdef:value="string"/>
+                    <formula2 xdef:value="string"/>
+                </dataValidation>
+            </dataValidations>
+
+            <pageSetup xdef:ref="page-setup.xdef"/>
+
+            <pageMargins xdef:ref="page-margins.xdef"/>
+
+            <pageBreaks xdef:name="ExcelPageBreaks">
+                <cols xdef:value="int-list"/>
+                <rows xdef:value="int-list"/>
+            </pageBreaks>
+
+            <!--
+            @sheetVarName 如果非空，则所有顶层的非展开单元格中的field实际都对应于此对象中的field。
+                    例如 sheetVarName=entity, 则field=x 实际对应 entity.x
+                    如果没有指定sheetVarName, 则field=x，实际对应scope.getValue('x')
+            -->
+            <model xdef:name="XptSheetModel" sheetVarName="string"
+                   defaultRowExtendForSibling="boolean" defaultColExtendForSibling="boolean"
+                   loopVarName="var-name" loopIndexName="var-name" loopItemsName="var-name">
+                <!--
+                如果返回false，则跳过当前sheet的生成。判断通过之后才会执行beginLoop
+                -->
+                <testExpr xdef:value="xpl-predicate"/>
+
+                <!--
+                可以根据模板生成多个sheet。 beginLoop如果返回数组，则针对数组中的每一项都生成一个Sheet
+                -->
+                <beginLoop xdef:value="xpl"/>
+                <endLoop xdef:value="xpl"/>
+
+                <!--
+                动态生成sheet的名称，返回值类型必须是字符串
+                -->
+                <sheetNameExpr xdef:value="xpl"/>
+
+                <beforeExpand xdef:value="xpl"/>
+                <afterExpand xdef:value="xpl"/>
+
+            </model>
+        </sheet>
+    </sheets>
+
+    <!--
+    @dump 如果为true，则每一步展开的中间结果都会输出为html
+    @dumpDir 配置了dumpDir，则dump的时候会输出到此目录下
+    -->
+    <model xdef:name="XptWorkbookModel" loopVarName="var-name" loopIndexName="var-name" loopItemsName="var-name"
+           removeHiddenCell="!boolean=false" maxSheetNameLength="int" dump="boolean" dumpDir="string">
+        <beginLoop xdef:value="xpl"/>
+        <endLoop xdef:value="xpl"/>
+
+        <beforeExpand xdef:value="xpl"/>
+        <afterExpand xdef:value="xpl"/>
+
+        <editors xdef:body-type="list" xdef:key-attr="id">
+            <editr id="!string" xdef:value="xpl-xjson" xdef:name="XptXplModel"/>
+        </editors>
+
+        <viewers xdef:body-type="list" xdef:key-attr="id">
+            <viewer id="!string" xdef:ref="XptXplModel"/>
+        </viewers>
+    </model>
+</workbook>

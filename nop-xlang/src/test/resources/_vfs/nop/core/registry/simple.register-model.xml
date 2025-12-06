@@ -1,0 +1,9 @@
+<model x:schema="/nop/schema/register-model.xdef" xmlns:x="/nop/schema/xdsl.xdef"
+       name="simple">
+
+    <loaders>
+        <xdsl-loader fileType="simple.xml" schemaPath="/schema/simple.xdef"/>
+        <loader fileType="simple" class="io.nop.xlang.xdsl.SimpleDslLoader" />
+    </loaders>
+
+</model>

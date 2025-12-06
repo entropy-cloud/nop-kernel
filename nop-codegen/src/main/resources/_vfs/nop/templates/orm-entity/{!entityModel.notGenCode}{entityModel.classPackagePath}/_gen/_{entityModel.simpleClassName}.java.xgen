@@ -1,0 +1,410 @@
+<c:unit xpl:outputMode="text">package ${entityModel.classPackageName}._gen;
+
+import io.nop.orm.model.IEntityModel;
+import io.nop.orm.support.${entityModel.kvTable ? 'AbstractOrmKeyValueTable' : 'DynamicOrmEntity'};
+import io.nop.orm.support.OrmEntitySet; //NOPMD - suppressed UnusedImports - Auto Gen Code
+import io.nop.orm.IOrmEntitySet; //NOPMD - suppressed UnusedImports - Auto Gen Code
+import io.nop.api.core.convert.ConvertHelper;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Arrays;
+import java.util.List;
+
+import ${entityModel.classPackageName}.${entityModel.simpleClassName};
+
+// tell cpd to start ignoring code - CPD-OFF
+/**
+ *  ${entityModel.displayName}: ${entityModel.tableName}
+ */
+@SuppressWarnings({"PMD.UselessOverridingMethod","PMD.UnusedLocalVariable","java:S3008","java:S1602","java:S1128","java:S1161",
+        "PMD.UnnecessaryFullyQualifiedName","PMD.EmptyControlStatement","java:S116","java:S115","java:S101","java:S3776"})
+public class _${entityModel.simpleClassName} extends ${entityModel['ext:baseClass'] ||  (entityModel.kvTable ? 'AbstractOrmKeyValueTable' : 'DynamicOrmEntity')}{
+    <c:for var="col" items="${entityModel.columns}">
+        <c:script> if(col.notGenCode) continue</c:script>
+    /* ${col.displayName}: ${col.code} ${col.stdSqlType} */
+    public static final String PROP_NAME_${col.name} = "${col.name}";
+    public static final int PROP_ID_${col.name} = ${col.propId};
+    </c:for>
+
+    private static int _PROP_ID_BOUND = ${entityModel.propIdBound};
+
+    <c:for var="rel" items="${entityModel.relations}">
+    <c:script> if(rel.notGenCode) continue</c:script>
+    /* relation: ${rel.displayName} */
+    public static final String PROP_NAME_${rel.name} = "${rel.name}";
+    </c:for>
+
+    <c:for var="alias" items="${entityModel.aliases}">
+    <c:script> if(alias.notGenCode) continue</c:script>
+    /* alias: ${alias.propPath} ${alias.displayName} */
+    public static final String PROP_NAME_${alias.name} = "${alias.name}";
+    </c:for>
+
+    <c:for var="prop" items="${entityModel.computes}">
+    <c:script> if(prop.notGenCode) continue</c:script>
+    /* compute: ${prop.displayName} */
+    public static final String PROP_NAME_${prop.name} = "${prop.name}";
+    </c:for>
+
+    <c:for var="prop" items="${entityModel.components}">
+    <c:script> if(prop.notGenCode) continue</c:script>
+    /* component: ${prop.displayName} */
+    public static final String PROP_NAME_${prop.name} = "${prop.name}";
+    </c:for>
+
+    protected static final List&lt;String> PK_PROP_NAMES = Arrays.asList(${entityModel.pkColumns.map(col=>'PROP_NAME_'+col.name).join(',')});
+    protected static final int[] PK_PROP_IDS = new int[]{${entityModel.pkColumns.map(col=>'PROP_ID_'+col.name).join(',')}};
+
+    private static final String[] PROP_ID_TO_NAME = new String[${entityModel.propIdBound}];
+    private static final Map&lt;String,Integer> PROP_NAME_TO_ID = new HashMap&lt;>();
+    static{
+      <c:for var="col" items="${entityModel.columns}">
+      <c:script> if(col.notGenCode) continue</c:script>
+          PROP_ID_TO_NAME[PROP_ID_${col.name}] = PROP_NAME_${col.name};
+          PROP_NAME_TO_ID.put(PROP_NAME_${col.name}, PROP_ID_${col.name});
+      </c:for>
+    }
+
+    <c:for var="col" items="${entityModel.columns}">
+    <c:script> if(col.notGenCode) continue</c:script>
+    /* ${col.displayName}: ${col.code} */
+    private ${col.javaClassName} _${col.name};
+    </c:for>
+
+    public _${entityModel.simpleClassName}(){
+        // for debug
+    }
+
+    protected ${entityModel.simpleClassName} newInstance(){
+        ${entityModel.simpleClassName} entity = new ${entityModel.simpleClassName}();
+        entity.orm_attach(orm_enhancer());
+        entity.orm_entityModel(orm_entityModel());
+        return entity;
+    }
+
+    @Override
+    public ${entityModel.simpleClassName} cloneInstance() {
+        ${entityModel.simpleClassName} entity = newInstance();
+        orm_forEachInitedProp((value, propId) -> {
+            entity.orm_propValue(propId,value);
+        });
+        return entity;
+    }
+
+    @Override
+    public String orm_entityName() {
+      // 如果存在实体模型对象，则以模型对象上的设置为准
+      IEntityModel entityModel = orm_entityModel();
+      if(entityModel != null)
+          return entityModel.getName();
+      return "${entityModel.name}";
+    }
+
+    @Override
+    public int orm_propIdBound(){
+      IEntityModel entityModel = orm_entityModel();
+      if(entityModel != null)
+          return entityModel.getPropIdBound();
+      return _PROP_ID_BOUND;
+    }
+
+    @Override
+    public Object orm_id() {
+    <c:choose>
+     <when test="${entityModel.compositePk}">
+        return buildCompositeId(PK_PROP_NAMES,PK_PROP_IDS);
+     </when>
+     <otherwise>
+        return buildSimpleId(PROP_ID_${entityModel.idProp.name});
+     </otherwise>
+    </c:choose>
+    }
+
+    @Override
+    public boolean orm_isPrimary(int propId) {
+        <c:choose>
+          <when test="${entityModel.compositePk}">
+            return ${entityModel.pkColumns.map(col=> 'propId == PROP_ID_'+col.name).join(" || ")};
+          </when>
+          <otherwise>
+            return propId == PROP_ID_${entityModel.idProp.name};
+          </otherwise>
+        </c:choose>
+    }
+
+    @Override
+    public String orm_propName(int propId) {
+        if(propId >= PROP_ID_TO_NAME.length)
+            return super.orm_propName(propId);
+        String propName = PROP_ID_TO_NAME[propId];
+        if(propName == null)
+           return super.orm_propName(propId);
+        return propName;
+    }
+
+    @Override
+    public int orm_propId(String propName) {
+        Integer propId = PROP_NAME_TO_ID.get(propName);
+        if(propId == null)
+            return super.orm_propId(propName);
+        return propId;
+    }
+
+    @Override
+    public Object orm_propValue(int propId) {
+        switch(propId){
+        <c:for var="col" items="${entityModel.columns}">
+        <c:script> if(col.notGenCode) continue</c:script>
+            case PROP_ID_${col.name}:
+               return ${col.name.$methodGet()}();
+        </c:for>
+           default:
+              return super.orm_propValue(propId);
+        }
+    }
+
+    <c:script>
+      function getConvertMethod(type){
+         if(type == 'io.nop.commons.bytes.ByteString')
+            return 'io.nop.commons.bytes.ByteString.from';
+         if(type == 'io.nop.commons.type.GeometryObject')
+            return 'io.nop.orm.geo.util.GeometryObjectHelper.toGeometryObject';
+         return 'ConvertHelper.to' + type.$lastPart('.');
+      }
+    </c:script>
+
+    @Override
+    public void orm_propValue(int propId, Object value){
+        switch(propId){
+        <c:for var="col" items="${entityModel.columns}">
+        <c:script> if(col.notGenCode) continue</c:script>
+            case PROP_ID_${col.name}:{
+               ${col.javaClassName} typedValue = null;
+               if(value != null){
+                   typedValue = ${getConvertMethod(col.javaClassName)}(value,
+                       err-> newTypeConversionError(PROP_NAME_${col.name}));
+               }
+               ${col.name.$methodSet()}(typedValue);
+               break;
+            }
+        </c:for>
+           default:
+              super.orm_propValue(propId,value);
+        }
+    }
+
+    @Override
+    public void orm_internalSet(int propId, Object value) {
+        switch(propId){
+        <c:for var="col" items="${entityModel.columns}">
+        <c:script> if(col.notGenCode) continue</c:script>
+            case PROP_ID_${col.name}:{
+               onInitProp(propId);
+               this._${col.name} = (${col.javaClassName})value;
+               <c:if test="${col.primary}">orm_id(); // 如果是设置主键字段，则触发watcher</c:if>
+               break;
+            }
+        </c:for>
+           default:
+              super.orm_internalSet(propId,value);
+        }
+    }
+
+    <c:for var="col" items="${entityModel.columns}">
+    <c:script> if(col.notGenCode) continue</c:script>
+    /**
+     * ${col.displayName}: ${col.code}
+     */
+    public final ${col.javaClassName} ${col.name.$methodGet()}(){
+         onPropGet(PROP_ID_${col.name});
+         return _${col.name};
+    }
+
+    /**
+     * ${col.displayName}: ${col.code}
+     */
+    public final void ${col.name.$methodSet()}(${col.javaClassName} value){
+        if(onPropSet(PROP_ID_${col.name},value)){
+            this._${col.name} = value;
+            internalClearRefs(PROP_ID_${col.name});
+            <c:if test="${col.primary}">orm_id();</c:if>
+        }
+    }
+    </c:for>
+
+<c:for var="rel" items="${entityModel.relations}">
+<c:script> if(rel.notGenCode) continue</c:script>
+    <c:choose>
+       <when test="${rel.toOneRelation}">
+    /**
+     * ${rel.displayName}
+     */
+    public final ${rel.refEntityModel.className} ${rel.name.$methodGet()}(){
+       return (${rel.refEntityModel.className})internalGetRefEntity(PROP_NAME_${rel.name});
+    }
+
+    public final void ${rel.name.$methodSet()}(${rel.refEntityModel.className} refEntity){
+   <c:choose>
+        <when test="${rel.oneToOne and rel.reverseDepends}">
+            internalSetReverseRefEntity(PROP_NAME_${rel.name}, refEntity, ()->{
+            <c:for var="join" items="${rel.join}">
+                <c:if test="${join.rightProp}">
+                    <c:choose>
+                        <when test="${join.leftType == join.rightType}">
+                            refEntity.${join.rightProp.$methodSet()}(${join.leftProp? 'this.'+join.leftProp.$methodGet()+'()'
+                                            : $JSON.stringify(join.leftValue)});
+                        </when>
+                        <otherwise>
+                            refEntity.orm_propValue(${rel.refEntityModel.name}.PROP_ID_${join.rightProp},
+                            ${join.leftProp? 'this.'+join.leftProp.$methodGet()+'()': $JSON.stringify(join.leftValue)});
+                        </otherwise>
+                    </c:choose>
+                </c:if>
+            </c:for>
+            });
+        </when>
+       <otherwise>
+           if(refEntity == null){
+           <c:for var="join" items="${rel.join}">
+               <c:if test="${join.leftProp}">
+                   this.${join.leftProp.$methodSet()}(null);
+               </c:if>
+           </c:for>
+           }else{
+           internalSetRefEntity(PROP_NAME_${rel.name}, refEntity,()->{
+           <c:for var="join" items="${rel.join}">
+               <c:if test="${join.leftProp}">
+                   <c:choose>
+                       <when test="${join.leftType == join.rightType}">
+                           this.${join.leftProp.$methodSet()}(${join.rightProp? 'refEntity.'+join.rightProp.$methodGet()+'()'
+                                           : $JSON.stringify(join.rightValue)});
+                       </when>
+                       <otherwise>
+                           this.orm_propValue(PROP_ID_${join.leftProp},
+                           ${join.rightProp? 'refEntity.'+join.rightProp.$methodGet()+'()': $JSON.stringify(join.rightValue)});
+                       </otherwise>
+                   </c:choose>
+               </c:if>
+           </c:for>
+           });
+           }
+       </otherwise>
+   </c:choose>
+    }
+       </when>
+
+       <otherwise>
+           <c:script><![CDATA[
+               function buildRefEntityParam(rel){
+                  if(rel.refEntityModel.name == rel.refEntityModel.className)
+                    return rel.refEntityModel.name + '.class';
+                  return rel.refEntityModel.className + '.class,"'+rel.refEntityModel.name+'"';
+               }
+
+               function buildRefPropName(rel){
+                    if(!rel.refPropName) return 'null'
+                    if(rel.refEntityModel.name == rel.refEntityModel.className)
+                        return rel.refEntityName + '.PROP_NAME_' + rel.refPropName;
+                    return rel.refPropName.$quote()
+               }
+
+               function buildRefKeyProp(rel){
+                   if(!rel.keyProp) return 'null';
+                    if(rel.refEntityModel.name == rel.refEntityModel.className)
+                        return rel.refEntityName + '.PROP_NAME_' + rel.keyProp;
+                    return rel.keyProp.$quote()
+               }
+           ]]></c:script>
+    private final OrmEntitySet&lt;${rel.refEntityModel.className}> _${rel.name} = new OrmEntitySet&lt;>(this, PROP_NAME_${rel.name},
+        ${buildRefPropName(rel)}, ${buildRefKeyProp(rel)},${buildRefEntityParam(rel)});
+
+    /**
+     * ${rel.displayName}。 refPropName: ${rel.refPropName}, keyProp: {rel.keyProp}
+     */
+    public final IOrmEntitySet&lt;${rel.refEntityModel.className}> ${rel.name.$methodGet()}(){
+       return _${rel.name};
+    }
+       </otherwise>
+    </c:choose>
+</c:for>
+
+<c:for var="prop" items="${entityModel.aliases}">
+<c:script> if(prop.notGenCode) continue</c:script>
+   public final ${prop.type} ${prop.name.$methodGet()}(){
+      return (${prop.type})internalGetAliasValue("${prop.propPath}");
+   }
+
+   public void ${prop.name.$methodSet()}(${prop.type} value){
+      internalSetAliasValue("${prop.propPath}",value);
+   }
+</c:for>
+
+<c:for var="prop" items="${entityModel.components}">
+<c:script> if(prop.notGenCode) continue</c:script>
+   private ${prop.className} _${prop.name};
+
+   private static Map&lt;String,Integer> COMPONENT_PROP_ID_MAP_${prop.name} = new HashMap&lt;>();
+   static{
+      <c:for var="compProp" items="${prop.props}">
+         COMPONENT_PROP_ID_MAP_${prop.name}.put(${prop.className}.PROP_NAME_${compProp.name},PROP_ID_${compProp.column});
+      </c:for>
+   }
+
+   public final ${prop.className} ${prop.name.$methodGet()}(){
+      if(_${prop.name} == null){
+          _${prop.name} = new ${prop.className}();
+          _${prop.name}.bindToEntity(this, COMPONENT_PROP_ID_MAP_${prop.name});
+      }
+      return _${prop.name};
+   }
+</c:for>
+<c:for var="rel" items="${entityModel.relations}">
+    <c:script><![CDATA[
+         import io.nop.orm.support.OrmMappingTableMeta
+
+        if(rel.notGenCode) continue;
+
+        if(!OrmMappingTableMeta.isMappingTable(rel.refEntityModel))
+           continue;
+
+        const mappingMeta = new OrmMappingTableMeta(rel.refEntityModel);
+
+        const mappingPropInfo = mappingMeta.getMappingPropInfo(rel);
+        if(!mappingPropInfo) continue;
+    ]]></c:script>
+    <c:if test="${mappingPropInfo and !mappingPropInfo.toMany}"><![CDATA[
+        public final ${mappingPropInfo.refClassName} ${mappingInfo.propName.$methodGet()}(){
+            return (${mappingPropInfo.refClassName})io.nop.orm.support.OrmEntityHelper.getPropFromSingleton(${rel.name.$methodGet()}(),"${mappingPropInfo.refPropNameInMappingTable}");
+        }
+
+        public final String ${mappingPropInfo.mappingIdProp.$methodGet()}(){
+            return io.nop.orm.support.OrmEntityHelper.getRefIdFromSingleton(${rel.name.$methodGet()}(),"${mappingPropInfo.refPropNameInMappingTable}");
+        }
+
+        public void ${mappingPropInfo.mappingIdProp.$methodSet()}(String value){
+            io.nop.orm.support.OrmEntityHelper.setRefIdFromSingleton(${rel.name.$methodGet()}(),"${mappingPropInfo.refPropNameInMappingTable}",value);
+        }
+    ]]></c:if>
+
+    <c:if test="${mappingPropInfo and mappingPropInfo.toMany}"><![CDATA[
+        public final List<${mappingPropInfo.refClassName}> ${mappingPropInfo.propName.$methodGet()}(){
+            return (List<${mappingPropInfo.refClassName}>)io.nop.orm.support.OrmEntityHelper.getRefProps(${rel.name.$methodGet()}(),"${mappingPropInfo.refPropNameInMappingTable}");
+        }
+
+        public final List<String> ${mappingPropInfo.mappingIdProp.$methodGet()}(){
+            return io.nop.orm.support.OrmEntityHelper.getRefIds(${rel.name.$methodGet()}(),"${mappingPropInfo.refPropNameInMappingTable}");
+        }
+
+        public void ${mappingPropInfo.mappingIdProp.$methodSet()}(List<String> value){
+            io.nop.orm.support.OrmEntityHelper.setRefIds(${rel.name.$methodGet()}(),"${mappingPropInfo.refPropNameInMappingTable}",value);
+        }
+    ]]></c:if>
+
+    public final String ${mappingPropInfo.mappingLabelProp.$methodGet()}(){
+        return io.nop.orm.support.OrmEntityHelper.getLabelForRefProps(${rel.name.$methodGet()}(),"${mappingPropInfo.refPropNameInMappingTable}");
+    }
+
+</c:for>
+}
+// resume CPD analysis - CPD-ON
+</c:unit>

@@ -1,0 +1,72 @@
+<lib x:schema="/nop/schema/xlib.xdef" xmlns:x="/nop/schema/xdsl.xdef">
+    <tags>
+        <GenReverseMappings outputMode="node">
+            <attr name="_dsl_root" implicit="true" />
+
+            <source>
+               <c:script>
+                   const mappings = _dsl_root.childrenByTag('mapping');
+                   const mappingMap = {};
+                   const reverseMappingMap = {};
+                   mappings.forEach(node=>{
+                     const name = node.attrText('name');
+                     if(name.contains('_to_')){
+                         const reverseName = reverseMappingName(name);
+                         if(mappingMap[reverseName]){
+                            reverseMappingMap[reverseName] = node;
+                         }else{
+                            mappingMap[name] = node;
+                         }
+                     }
+                   });
+
+                   function reverseMappingName(mappingName){
+                      if(!mappingName)
+                         return null;
+                      const parts = mappingName.split('_to_');
+                      if(parts.length == 2){
+                         return parts[1] + '_to_' + parts[0];
+                      }
+                      return null;
+                   }
+
+                   function reverseTitleField(mapping){
+                      const titleField = mapping.attrText('md:titleField');
+                      if(!titleField)
+                         return null;
+                      const fields = mapping.childByTag('fields');
+                      const field = fields.childByAttr('name',titleField);
+                      return field?.attrText('from');
+                   }
+               </c:script>
+
+               <definitions>
+                  <c:for var="mapping" items="${mappingMap.values()}">
+                   <mapping name="${reverseMappingName(mapping.attrText('name'))}"
+                        md:titleField="${reverseTitleField(mapping)}" >
+                       <fields>
+                           <c:for var="field" items="${mapping.childByTag('fields').children}">
+                               <!-- 当from不为空的时候生成反向字段映射 -->
+                               <field name="${field.attrText('from')}" xpl:if="field.attrText('from')"
+                                      type="${field.attrText('type')}" mandatory="${field.attrText('mandatory')}"
+                                      from="${field.attrText('name')}" displayName="${field.attrText('displayName')}"
+                                      mapping="${reverseMappingName(field.attrText('mapping'))}"
+                                      optional="${field.attrText('optional')}" md:format="${field.attrText('md:format')}"
+                                      itemMapping="${reverseMappingName(field.attrText('itemMapping'))}">
+                                   <c:out value="${field.childByTag('schema')}" escape="none"/>
+                               </field>
+                           </c:for>
+                       </fields>
+                   </mapping>
+                  </c:for>
+               </definitions>
+
+               <definitions>
+                   <c:for var="reverseMapping" items="${reverseMappingMap.values()}">
+                     <c:out value="${reverseMapping}" escape="none"/>
+                   </c:for>
+               </definitions>
+            </source>
+        </GenReverseMappings>
+    </tags>
+</lib>

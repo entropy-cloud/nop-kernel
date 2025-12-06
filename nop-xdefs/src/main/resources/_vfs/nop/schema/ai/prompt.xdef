@@ -1,0 +1,83 @@
+<!--
+-->
+<prompt xdef:name="PromptModel" xdef:bean-package="io.nop.ai.core.model"
+        x:schema="/nop/schema/xdef.xdef" xmlns:x="/nop/schema/xdsl.xdef"
+        xmlns:xdef="/nop/schema/xdef.xdef"
+        displayName="string">
+
+    <description xdef:value="string"/>
+
+    <defaultChatOptions xdef:ref="chat-options.xdef"/>
+
+    <inputs xdef:body-type="list" xdef:key-attr="name">
+        <!--
+        声明模板中使用的变量信息。主要用于模板管理
+        -->
+        <input name="!var-name" displayName="string" xdef:name="PromptInputModel"
+               type="generic-type" optional="!boolean=false" mandatory="!boolean=false">
+            <schema xdef:ref="../schema/schema.xdef"/>
+            <description>string</description>
+
+            <defaultExpr>xpl-fn:()=>any</defaultExpr>
+
+            <parseFromMessage xdef:name="PromptInputParseModel" blockStartMarker="string" blockEndMarker="string">
+                <parseFunction>xpl-fn:(message)=>any</parseFunction>
+            </parseFromMessage>
+        </input>
+    </inputs>
+
+    <outputs xdef:body-type="list" xdef:key-attr="name">
+        <!-- 解析响应消息，得到结果变量保存到AiResultMessage上
+          @skipWhenResponseInvalid 当AichatExchange为invalid状态时，跳过此输出变量的解析
+          @parseAfterPostProcess 是否在postProcess调用之前解析
+          @format 如果是xml，则尝试从content中解析得到XML节点。如果是json，则尝试解析得到json数据。解析中会自动忽略一些无关的输出信息。
+        -->
+        <output name="!var-name" displayName="string" xdef:name="PromptOutputModel" type="generic-type"
+                optional="!boolean=false" mandatory="!boolean=false"
+                format="enum:io.nop.ai.core.model.PromptOutputFormat" codeLang="string"
+                skipWhenResponseInvalid="!boolean=false" parseAfterPostProcess="!boolean=false">
+            <description>string</description>
+            <schema xdef:ref="../schema/schema.xdef"/>
+
+            <xdefPath>v-path</xdefPath>
+            <markdownPath>v-path</markdownPath>
+
+            <when>xpl-fn:(chatExchange)=>boolean</when>
+
+            <!-- 当不满足解析条件时，执行defaultExpr返回缺省值 -->
+            <defaultExpr>xpl-fn:(chatExchange)=>any</defaultExpr>
+
+            <!--
+            没有指定format的情况下才会使用parseFromResponse配置
+            如果指定了source，则执行代码来解析变量。如果没有指定source，但是指定了startMarker和endMarker，则从响应消息中截取相关信息。
+            如果以上配置都没有，但是配置了contains，则只要响应消息中包含此字符串，就设置为true。
+
+            @startMarkerOptional 如果为true，则允许响应消息中没有startMarker，此时认为startMarker在消息的最前方
+            @includeStartMarker 如果为true，则将startMarker包含在解析结果中
+            -->
+            <parseFromResponse xdef:name="PromptOutputParseModel" containsText="string"
+                               startMarkerOptional="!boolean=false" blockStartMarker="string" blockEndMarker="string"
+                               includeStartMarker="!boolean=false" includeEndMarker="!boolean=false">
+                <parseFunction>xpl-fn:(chatExchange)=>any</parseFunction>
+            </parseFromResponse>
+
+            <!-- 对解析得到的value进行后处理。处理之后再执行XDef元模型验证 -->
+            <valueNormalizer>xpl-fn:(value,chatExchange)=>any</valueNormalizer>
+
+            <outputBuilder>xpl-fn:(value,chatExchange)=>any</outputBuilder>
+        </output>
+    </outputs>
+
+    <!--
+    通过template表达式生成prompt。如果有复杂的动态处理逻辑，可以在preProcess段中完成
+    -->
+    <template>prompt-syntax</template>
+
+    <preProcess>xpl-fn:()=>void</preProcess>
+
+    <!--
+    执行完AI模型调用后得到AichatExchange对象，可以通过模板内置的后处理器对返回结果进行再加工。
+    这样在切换不同的Prompt模板的时候可以自动切换使用不同的后处理器。
+    -->
+    <postProcess>xpl-fn:(chatExchange)=>void</postProcess>
+</prompt>

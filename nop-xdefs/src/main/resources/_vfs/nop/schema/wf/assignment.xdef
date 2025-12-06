@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+@selection 是否允许用户在actors范围内选择，是单选还是多选。缺省情况下所有配置的actor都会被自动选择
+@mustInAssignment 是否要求actor必须在assignment范围内选择。如果选择false, 则引擎执行时以前台传入的selectedActors为准，不检查是否它们是否在assignment范围内。
+@ignoreNoAssign 是否允许不选择actor。如果不允许，则当selectedActors为空时会抛出异常
+ -->
+<assignment selection="enum:io.nop.wf.api.actor.WfAssignmentSelection" mustInAssignment="!boolean=true"
+            ignoreNoAssign="!boolean=false" useManagerWhenNoAssign="!boolean=true"
+            xdef:name="WfAssignmentModel" xdef:bean-package="io.nop.wf.core.model" xdef:check-ns="wf"
+            x:schema="/nop/schema/xdef.xdef" xmlns:x="/nop/schema/xdsl.xdef" xmlns:xdef="/nop/schema/xdef.xdef"
+            xmlns:wf="wf"
+>
+    <!--
+    从actors集合中过滤得到实际使用的actor列表。仅当selection=auto时才会被使用。
+    -->
+    <selectExpr xdef:value="xpl"/>
+
+    <!--
+    对于每一个actor，从actor对应的user中选择一个作为owner
+    -->
+    <defaultOwnerExpr xdef:value="xpl"/>
+
+    <actors xdef:body-type="list" xdef:key-attr="actorModelId">
+        <!--
+          @actorModelId actor节点的唯一标识
+          @actorType actor类型，如果包含名字空间，则对应于标签库中定义的动态Actor
+          @selectUser 选择actor本身还是actor对应的user
+          @voteWeight [投票权重]
+          @assignForUser 是否为actor中的每个用户生成步骤实例
+          @wf:formAuth 表单权限，一般为可编辑的字段列表
+          @wf:permissions 操作权限，例如允许回退，允许加签/减签，允许转交等
+        -->
+        <actor actorModelId="!string" actorId="string" actorType="!string" actorName="string"
+               deptId="string" selectUser="!boolean=true"
+               voteWeight="!int=1" assignForUser="!boolean=false"
+               wf:formAuth="string" wf:permissions="csv-set" wf:upLevel="int"
+               xdef:allow-multiple="true" xdef:name="WfAssignmentActorModel"/>
+    </actors>
+
+    <!--
+    当actors集合中实际选择的人员为空时会使用defaultActor
+    -->
+    <defaultActorExpr xdef:value="xpl"/>
+
+</assignment>

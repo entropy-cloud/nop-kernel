@@ -1,0 +1,11 @@
+<c:unit xpl:outputMode="text"><![CDATA[package ${apiPackageName}.beans;
+
+import io.nop.api.core.annotations.data.DataBean;
+import ${apiPackageName}.beans._gen._${messageModel.name};
+
+@DataBean
+public class ${messageModel.name} extends _${messageModel.name}{
+    public ${messageModel.name}(){
+    }
+}
+]]></c:unit>

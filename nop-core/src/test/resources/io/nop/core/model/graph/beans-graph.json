@@ -1,0 +1,101 @@
+{
+  "edges": [
+    {
+      "source": "a",
+      "target": "b"
+    },
+    {
+      "source": "a",
+      "target": "c"
+    },
+    {
+      "source": "a",
+      "target": "$GEN$4"
+    },
+    {
+      "source": "b",
+      "target": "a"
+    },
+    {
+      "source": "b",
+      "target": "c"
+    },
+    {
+      "source": "c",
+      "target": "a"
+    },
+    {
+      "source": "myChild",
+      "target": "myParent"
+    },
+    {
+      "source": "myChild",
+      "target": "myGrandparent"
+    },
+    {
+      "source": "myInjectBean",
+      "target": "a"
+    },
+    {
+      "source": "myInjectBean",
+      "target": "b"
+    },
+    {
+      "source": "testInitProperty",
+      "target": "$GEN$5"
+    }
+  ],
+  "vertices": [
+    {
+      "vertexId": "a"
+    },
+    {
+      "vertexId": "myParentNested"
+    },
+    {
+      "vertexId": "b"
+    },
+    {
+      "vertexId": "myInitBean"
+    },
+    {
+      "vertexId": "c"
+    },
+    {
+      "vertexId": "myGrandparent"
+    },
+    {
+      "vertexId": "myDestroyBean"
+    },
+    {
+      "vertexId": "$GEN$5"
+    },
+    {
+      "vertexId": "$GEN$4"
+    },
+    {
+      "vertexId": "myLazyInitBean"
+    },
+    {
+      "vertexId": "myFactoryBean"
+    },
+    {
+      "vertexId": "myLazyInitBean2"
+    },
+    {
+      "vertexId": "myChild"
+    },
+    {
+      "vertexId": "myParent"
+    },
+    {
+      "vertexId": "myPrototypeBean"
+    },
+    {
+      "vertexId": "myInjectBean"
+    },
+    {
+      "vertexId": "testInitProperty"
+    }
+  ]
+}

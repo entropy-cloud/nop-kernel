@@ -1,0 +1,87 @@
+<c:unit xpl:outputMode="text">//__XGEN_FORCE_OVERRIDE__
+    package ${apiPackageName};
+
+    import java.util.concurrent.CompletionStage;
+
+    import io.nop.api.core.beans.ApiRequest;
+    import io.nop.api.core.beans.ApiResponse;
+    import io.nop.api.core.util.FutureHelper;
+    import io.nop.api.core.util.ICancelToken;
+    import io.nop.api.core.annotations.biz.BizModel;
+    import io.nop.api.core.annotations.biz.BizMutation;
+    import io.nop.api.core.annotations.biz.BizQuery;
+    import io.nop.api.core.annotations.biz.RequestBean;
+    import static io.nop.api.core.ApiConstants.SYS_PARAM_SELECTION;
+
+    import jakarta.ws.rs.POST;
+    import jakarta.ws.rs.Path;
+    import jakarta.ws.rs.Consumes;
+    import jakarta.ws.rs.core.MediaType;
+    import jakarta.ws.rs.QueryParam;
+
+    <gen:CollectApiMessageImports xpl:lib="/nop/codegen/xlib/gen.xlib"
+                                  serviceModel="${serviceModel}" xpl:return="types" />
+    <c:for var="type" items="${types}">
+        import ${type};
+    </c:for>
+
+    <c:script>
+        function normalizeReturnType(type){
+           return type == 'void' ? 'Void' : type;
+        }
+    </c:script>
+
+    /**
+     * ${serviceModel.displayName} ${serviceModel.description}
+     */
+    @BizModel("${serviceModel.bizObjName}")
+    public interface ${serviceModel.name}{
+
+    <c:for var="method" items="${serviceModel.methods}"><![CDATA[
+
+        /**
+         * ${method.displayName} ${method.description}
+         */
+        @POST
+        @Path("/r/${serviceModel.bizObjName}__${method.name}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @${method.mutation?'BizMutation':'BizQuery'}("${method.name}")
+        CompletionStage<ApiResponse<${normalizeReturnType(method.simpleResponseMessage)}>> ${method.name}Async(${method.voidRequest ? '': '@RequestBean '+method.simpleRequestMessage + ' request,'}
+            @QueryParam(SYS_PARAM_SELECTION) String selection);
+
+
+        /**
+         * ${method.displayName} ${method.description}
+         */
+        @POST
+        @Path("/r/${serviceModel.bizObjName}__${method.name}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @${method.mutation?'BizMutation':'BizQuery'}("${method.name}")
+        ApiResponse<${normalizeReturnType(method.simpleResponseMessage)}> ${method.name}(${method.voidRequest ? '': '@RequestBean '+method.simpleRequestMessage + ' request,'}
+             @QueryParam(SYS_PARAM_SELECTION) String selection);
+
+    ]]></c:for>
+
+    <c:for var="method" items="${serviceModel.methods}"><![CDATA[
+        /**
+         * ${method.displayName} ${method.description}
+         */
+        @POST
+        @Path("/r/${serviceModel.bizObjName}__${method.name}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @${method.mutation?'BizMutation':'BizQuery'}("${method.name}")
+        CompletionStage<ApiResponse<${normalizeReturnType(method.simpleResponseMessage)}>> api_${method.name}Async(ApiRequest<${method.simpleRequestMessage}> request,
+            ICancelToken cancelToken);
+
+        /**
+         * ${method.displayName} ${method.description}
+         */
+        @POST
+        @Path("/r/${serviceModel.bizObjName}__${method.name}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @${method.mutation?'BizMutation':'BizQuery'}("${method.name}")
+        ApiResponse<${normalizeReturnType(method.simpleResponseMessage)}> api_${method.name}(ApiRequest<${method.simpleRequestMessage}> request,
+            ICancelToken cancelToken);
+]]></c:for>
+    }
+</c:unit>

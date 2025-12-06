@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+定长记录的定义
+
+@name 对应解析得到的属性名
+@repeatKind 如果是列表结构或者Map结构，则这里用来确定如何判断所有条目已经解析完毕
+@supportStreaming 当字段类型为集合类型时，如果设置了supportStreaming，则流式解析的时候可以每次只返回一个StreamingItem。
+-->
+<field x:schema="/nop/schema/xdef.xdef" xmlns:x="/nop/schema/xdsl.xdef"
+       xmlns:xdef="/nop/schema/xdef.xdef"
+       name="!string" xdef:ref="record-simple-field.xdef"
+       xdef:name="RecordFieldMeta" xdef:bean-package="io.nop.record.model"
+       repeatKind="enum:io.nop.record.model.FieldRepeatKind"
+       supportStreaming="!boolean=false"
+       tagIndex="!int=0" typeRef="string" repeatCountFieldName="prop-path"
+>
+    <repeatCountField xdef:ref="record-simple-field.xdef"/>
+
+    <!--
+    返回字段的循环次数
+    -->
+    <repeatCountExpr xdef:value="xpl-fn:(input,record,ctx)=>long"/>
+
+    <!--
+    返回字段循环的终止条件
+    -->
+    <repeatUntil xdef:value="xpl-fn:(input,record,ctx)=>boolean"/>
+
+    <!--
+    动态确定字段类型
+    如果指定了switchOnField，则输出时根据从record[switchOnField]上获取到case类型，然后再映射到type类型，从根对象的types集合中再获取具体定义
+    -->
+    <switchOnField xdef:value="prop-name"/>
+
+    <switchOnRule xdef:value="peek-match-rule"/>
+
+    <switchOnExpr xdef:value="xpl-fn:(input,record,ctx)=>string"/>
+
+    <!-- 根据record[switchOnField]或者switchOnRule获取到类型，key为*表示缺省映射 -->
+    <switchTypeMap xdef:value="string-map"/>
+
+    <beforeWrite xdef:value="xpl-fn:(out,record,ctx)=>any"/>
+
+    <beforeRead xdef:value="xpl-fn:(input,record,ctx)=>any"/>
+
+    <afterWrite xdef:value="xpl-fn:(out,record,ctx)=>any"/>
+
+    <!-- 在所有子字段都读取到之后执行 -->
+    <afterRead xdef:value="xpl-fn:(input,record,ctx)=>any"/>
+</field>

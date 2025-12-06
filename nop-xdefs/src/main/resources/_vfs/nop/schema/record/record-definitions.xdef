@@ -1,0 +1,21 @@
+<definitions x:schema="/nop/schema/xdef.xdef"
+             xmlns:x="/nop/schema/xdsl.xdef"
+             xmlns:xdef="/nop/schema/xdef.xdef"
+             xdef:name="RecordDefinitions" xdef:bean-package="io.nop.record.model"
+             binary="!boolean=false" defaultCharset="string=UTF-8"
+             bitEndian="enum:io.nop.commons.bytes.EndianKind"
+             defaultEndian="enum:io.nop.commons.bytes.EndianKind"
+             packageName="class-name"
+>
+    <imports xdef:body-type="list" xdef:key-attr="as">
+        <import from="v-path" name="!var-name" as="!var-name=@attr:name" xdef:name="RecordImportModel"/>
+    </imports>
+
+    <types xdef:body-type="list" xdef:key-attr="name">
+        <type name="!prop-name" xdef:ref="record-object.xdef" xdef:name="RecordTypeMeta" abstract="!boolean=false"/>
+    </types>
+
+    <dicts xdef:body-type="list" xdef:key-attr="name">
+        <dict name="!var-name" xdef:ref="../orm/dict.xdef"/>
+    </dicts>
+</definitions>

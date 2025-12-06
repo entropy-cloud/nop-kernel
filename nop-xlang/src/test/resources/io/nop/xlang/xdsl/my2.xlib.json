@@ -1,0 +1,57 @@
+{
+  "xmlns:x": "/nop/schema/xdsl.xdef",
+  "tags": {
+    "Add": {
+      "tagName": "Add",
+      "dump": false,
+      "deprecated": false,
+      "macro": false,
+      "internal": false,
+      "ignoreUnknownAttrs": false,
+      "conditionTag": false,
+      "attrs": [
+        {
+          "name": "a",
+          "mandatory": true,
+          "implicit": false,
+          "optional": false,
+          "internal": false,
+          "runtime": false,
+          "deprecated": false
+        },
+        {
+          "name": "b",
+          "implicit": true,
+          "mandatory": false,
+          "optional": false,
+          "internal": false,
+          "runtime": false,
+          "deprecated": false
+        }
+      ],
+      "source": "<_>\n    <c:script>\n                    a + b\n                </c:script>\n</_>"
+    },
+    "Nested": {
+      "tagName": "Nested",
+      "outputMode": "text",
+      "dump": false,
+      "deprecated": false,
+      "macro": false,
+      "internal": false,
+      "ignoreUnknownAttrs": false,
+      "conditionTag": false,
+      "attrs": [
+        {
+          "name": "parent",
+          "mandatory": false,
+          "implicit": false,
+          "optional": false,
+          "internal": false,
+          "runtime": false,
+          "deprecated": false
+        }
+      ],
+      "source": "<_>\n    <c:unit>${parent.name},</c:unit>\n    <c:for var=\"child\" items=\"${parent.children}\">\n        <thisLib:Nested parent=\"${child}\"/>\n    </c:for>\n</_>"
+    }
+  }
+}

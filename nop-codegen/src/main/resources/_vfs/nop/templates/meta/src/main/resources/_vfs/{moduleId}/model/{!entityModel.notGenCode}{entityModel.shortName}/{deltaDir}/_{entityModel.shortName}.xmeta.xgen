@@ -1,0 +1,275 @@
+<meta x:schema="/nop/schema/xmeta.xdef" xmlns:x="/nop/schema/xdsl.xdef" xmlns:i18n-en="i18n-en" xmlns:ext="ext"
+      xmlns:xpl="xpl" ext:model="orm" xmlns:c="c" xmlns:graphql="graphql" xmlns:meta-gen="meta-gen" xmlns:biz="biz"
+      displayName="${entityModel.displayName}" i18n-en:displayName="${entityModel['i18n-en:displayName']}"
+      tagSet="${_.join(entityModel.tagSet,',')}" xmlns:ui="ui" xmlns:orm="orm">
+    <entityName>${entityModel.name}</entityName>
+
+    <primaryKey>${_.join(entityModel.pkColumnNames,',')}</primaryKey>
+    <c:script>const dispCol = entityModel.getColumnByTag('disp')</c:script>
+    <displayProp xpl:if="dispCol">${dispCol.name}</displayProp>
+
+    <c:print>
+        <x:gen-extends>
+            <meta-gen:DefaultMetaGenExtends xpl:lib="/nop/core/xlib/meta-gen.xlib"/>
+        </x:gen-extends>
+
+        <x:post-extends>
+            <meta-gen:DefaultMetaPostExtends xpl:lib="/nop/core/xlib/meta-gen.xlib"/>
+        </x:post-extends>
+    </c:print>
+
+    <keys>
+        <c:for var="uniqueKey" items="${entityModel.uniqueKeys}">
+            <key name="${uniqueKey.name}" props="${_.join(uniqueKey.columns,',')}"
+                 displayName="${uniqueKey.displayName}"/>
+        </c:for>
+    </keys>
+
+    <c:script><![CDATA[
+        const sortProps = entityModel.columns.filter(col=> col.containsTag('sort') || col.containsTag('sort-desc'));
+        const parentProp = entityModel.getColumnByTag('parent');
+
+        function buildColControl(col){
+           if(parentProp == col){
+              const childrenProp = parentProp.columnRefs?.[0]?.refPropName;
+              if(childrenProp){
+                 // 如果具有parent和children属性，则使用tree控件来选择
+                 return "tree-parent";
+              }
+           }
+        }
+
+        function buildColDepends(col){
+
+        }
+    ]]></c:script>
+    <orderBy xpl:if="sortProps.size() > 0">
+        <c:for var="sortProp" items="${sortProps}">
+            <field name="${sortProp.name}" desc="${sortProp.containsTag('sort-desc')}"/>
+        </c:for>
+    </orderBy>
+
+    <c:if test="${parentProp}">
+        <tree isLeafProp="${entityModel.getColumnByTag('is-leaf')?.name}" parentProp="${parentProp.name}"
+              childrenProp="${parentProp.columnRefs?.[0]?.refPropName}"
+              levelProp="${entityModel.getColumnByTag('tree-level')?.name}"
+              rootLevelValue="${entityModel.getColumnByTag('tree-level')?.['ext:rootLevel']}"
+        />
+    </c:if>
+
+    <c:import from="/nop/codegen/xlib/meta-gen.xlib"/>
+
+    <props>
+        <c:for var="col" items="${entityModel.columns}">
+            <c:script><![CDATA[
+                // 是否是数据库列对应的增强对象
+                let colComp = entityModel.getComponent(col.name + "Component");
+                let jsonCol = colComp != null && colComp.className.$simpleClassName() == 'JsonOrmComponent'
+            ]]></c:script>
+            <prop name="${col.name}" displayName="${col.displayName}" propId="${col.propId}"
+                  i18n-en:displayName="${col['i18n-en:displayName']}" tagSet="${_.join(col.tagSet,',')}"
+                  mandatory="${col.mandatory || null}" published="${col.tagSet?.contains('not-pub') ? false:null}"
+                  queryable="${col.tagSet?.contains('not-query') ? false: true}"
+                  sortable="${col.tagSet?.contains('not-sort')?false:true}"
+                  insertable="${xpl('meta-gen:IsColInsertable',col)}" updatable="${xpl('meta-gen:IsColUpdatable',col)}"
+                  internal="${xpl('meta-gen:IsColInternal',col)||null}" depends="${buildColDepends(col)}"
+                  graphql:jsonComponentProp="${jsonCol? col.name + 'Component' : null}"
+                  graphql:type="${col.primary and col.stdDataType.toString() == 'long' ? 'String':null}"
+                  ui:show="${col['ui:show']}" ui:control="${col['ui:control'] || buildColControl(col)}"
+                  biz:codeRule="${col?.tagSet?.contains('code')?entityModel.shortName+'@'+col.name:null}"
+                  ext:relation="${col.columnRefs?.[0]?.name}" defaultValue="${col.defaultValue}"
+                  x:override="${col.tagSet?.contains('del') ? 'remove':null}"
+            >
+                <schema stdDomain="${col.stdDomain}" domain="${col.domain}" type="${col.javaTypeName}"
+                        precision="${col.precision}" scale="${col.scale}"
+                        dict="${col['ext:dict']}"/>
+            </prop>
+        </c:for>
+
+        <c:for var="rel" items="${entityModel.relations}">
+            <c:script><![CDATA[
+                import io.nop.orm.support.OrmManyToManyHelper;
+
+                if(rel.tagSet?.contains('no-meta')) continue;
+                const useGrid = rel.tagSet?.contains('grid');
+
+                const refMappingInfo = OrmManyToManyHelper.getRefMappingInfo(rel);
+            ]]></c:script>
+            <prop name="${rel.name}" displayName="${rel.displayName}"
+                  i18n-en:displayName="${rel['i18n-en:displayName']}" tagSet="${_.join(rel.tagSet,',')}"
+                  ext:kind="${rel.toOneRelation?'to-one':'to-many'}" internal="true"
+                  queryable="${rel.toOneRelation?true:null}"
+                  ui:control="${rel['ui:control']}" ui:editGrid="${useGrid ? 'sub-grid-edit':null}"
+                  ui:viewGrid="${useGrid ?'sub-grid-view':null}"
+                  ext:joinLeftProp="${rel.singleColumnJoin?.leftProp}"
+                  ext:joinRightProp="${rel.singleColumnJoin?.rightProp}"
+                  ext:joinRightDisplayProp="${rel.singleColumnJoin?.rightDisplayPropModel?.name}"
+                  orm:manyToManyRefProp="${refMappingInfo?.manyToManyRefProp}"
+                  biz:moduleId="${rel.refEntityModel['biz:moduleId']}"
+                  insertable="${rel.tagSet?.contains('insertable')}" updatable="${rel.tagSet?.contains('updatable')}"
+                  mandatory="${(rel.toOneRelation and rel.mandatory) || null}" lazy="true"
+                  published="${rel.tagSet?.contains('pub') ? null :false}">
+                <schema bizObjName="${rel.refEntityName.$lastPart('.')}" xpl:if="rel.toOneRelation"/>
+                <schema xpl:if="rel.toManyRelation">
+                    <item bizObjName="${rel.refEntityName.$lastPart('.')}"/>
+                </schema>
+            </prop>
+            <c:if test="${rel.tagSet?.contains('pub') and rel.toOneRelation and rel.singleColumnJoin?.rightDisplayPropModel}">
+                <prop name="${rel.name}.${rel.singleColumnJoin.rightDisplayPropModel.name}"
+                      displayName="${rel.displayName}" i18n-en:displayName="${rel['i18n-en:displayName']}"
+                      internal="true" queryable="true" sortable="true" lazy="true">
+                    <schema type="String"/>
+                </prop>
+            </c:if>
+        </c:for>
+
+        <c:for var="comp" items="${entityModel.components}">
+            <c:script><![CDATA[
+                if(comp.tagSet?.contains('no-meta')) continue;
+                const insertable = comp.tagSet?.contains('edit');
+                const updatable = comp.tagSet?.contains('edit');
+            ]]></c:script>
+            <c:choose>
+                <when test="${comp.className == 'io.nop.orm.component.OrmFileComponent'}">
+                    <prop name="${comp.name}FileStatus" displayName="${comp.displayName}"
+                          mapToProp="${comp.name}.fileStatus"
+                          i18n-en:displayName="${comp['i18n-en:displayName']}" internal="true"
+                          lazy="${comp.tagSet?.contains('eager')?false:true}"
+                          published="${comp.tagSet?.contains('not-pub') ? false : null}">
+                        <schema type="io.nop.api.core.beans.file.FileStatusBean"/>
+                    </prop>
+                </when>
+                <when test="${comp.className == 'io.nop.orm.component.OrmFileListComponent'}">
+                    <prop name="${comp.name}FileStatusList" displayName="${comp.displayName}"
+                          mapToProp="${comp.name}.fileStatusList"
+                          i18n-en:displayName="${comp['i18n-en:displayName']}" internal="true"
+                          lazy="${comp.tagSet?.contains('eager')?false:true}"
+                          published="${comp.tagSet?.contains('not-pub') ? false : null}">
+                        <schema type="List&lt;io.nop.api.core.beans.file.FileStatusBean>"/>
+                    </prop>
+                </when>
+                <otherwise>
+                    <prop name="${comp.name}" displayName="${comp.displayName}"
+                          i18n-en:displayName="${comp['i18n-en:displayName']}" tagSet="${_.join(comp.tagSet,',')}"
+                          ext:kind="component" internal="true" ui:control="${comp['ui:control']}"
+                          insertable="${insertable}" updatable="${updatable}"
+                          mandatory="${comp.mandatory || null}" lazy="${comp.tagSet?.contains('eager')?false:true}"
+                          published="${comp.tagSet?.contains('not-pub') ? false : null}">
+                        <schema type="${comp.javaTypeName}"/>
+                    </prop>
+                </otherwise>
+            </c:choose>
+        </c:for>
+
+        <c:for var="alias" items="${entityModel.aliases}">
+            <c:script>if(alias.tagSet?.contains('no-meta')) continue;
+                const insertable = alias.tagSet?.contains('edit');
+                const updatable = alias.tagSet?.contains('edit');
+            </c:script>
+            <prop name="${alias.name}" displayName="${alias.displayName}"
+                  i18n-en:displayName="${alias['i18n-en:displayName']}" tagSet="${_.join(alias.tagSet,',')}"
+                  ext:kind="alias" internal="${alias.tagSet?.contains('sys')}" ui:control="${alias['ui:control']}"
+                  insertable="${insertable}" updatable="${updatable}"
+                  mandatory="${alias.mandatory || null}" lazy="${alias.tagSet?.contains('eager')?false:true}"
+                  published="${alias.tagSet?.contains('not-pub') ? false : null}">
+                <schema type="${alias.javaTypeName}"/>
+            </prop>
+        </c:for>
+
+        <c:for var="rel" items="${entityModel.relations}">
+            <c:script><![CDATA[
+                import io.nop.orm.support.OrmMappingTableMeta
+
+                if(rel.tagSet?.contains('not-gen')) continue;
+
+                if(!OrmMappingTableMeta.isMappingTable(rel.refEntityModel))
+                   continue;
+
+                const mappingMeta = new OrmMappingTableMeta(rel.refEntityModel);
+
+                const mappingPropInfo = mappingMeta.getMappingPropInfo(rel);
+                const tagSet = mappingPropInfo?.tagSet || rel.tagSet;
+                const insertable = tagSet?.contains('insertable');
+                const updatable = tagSet?.contains('updatable');
+                const published = tagSet?.contains('pub') ? null : false;
+
+            ]]></c:script>
+            <prop name="${mappingPropInfo.propName}" displayName="${mappingPropInfo.displayName}"
+                  i18n-en:displayName="${mappingPropInfo.enDisplayName}" published="${published}"
+                  insertable="${insertable}" updatable="${updatable}" tagSet="${tagSet?.join(',')}"
+                  biz:moduleId="${mappingPropInfo.bizModuleId}" depends="~${rel.name}"
+                  xpl:if="mappingPropInfo" internal="true" lazy="true">
+                <c:iif test="${mappingPropInfo.toMany}">
+                    <c:unit>
+                        <schema>
+                            <item bizObjName="${mappingPropInfo.bizObjName}"/>
+                        </schema>
+                        <getter><![CDATA[
+                            import io.nop.orm.support.OrmEntityHelper;
+                            return OrmEntityHelper.getRefProps(
+                                entity["${rel.name}"], "${mappingPropInfo.refPropNameInMappingTable}");
+                        ]]></getter>
+                    </c:unit>
+                    <c:unit>
+                        <schema bizObjName="${mappingPropInfo.bizObjName}"/>
+                        <c:unit xpl:ignoreTag="true"><![CDATA[
+                            import io.nop.orm.support.OrmEntityHelper;
+                            return OrmEntityHelper.getPropFromSingleton(
+                                 entity["${rel.name}"], "${mappingPropInfo.refPropNameInMappingTable}");
+                        ]]></c:unit>
+                    </c:unit>
+                </c:iif>
+            </prop>
+
+            <prop name="${mappingPropInfo.mappingIdProp}" displayName="${mappingPropInfo.displayName}"
+                  i18n-en:displayName="${mappingPropInfo.enDisplayName}" published="${published}"
+                  insertable="${insertable}" updatable="${updatable}"
+                  graphql:labelProp="${mappingPropInfo.mappingLabelProp}" lazy="true"
+                  ui:pickerUrl="/${moduleId}/pages/${mappingPropInfo.bizObjName}/picker.page.yaml" ui:refLabelProp="${mappingPropInfo.refLabelProp}"
+                  xpl:if="mappingPropInfo" internal="true" depends="~${rel.name}">
+                <c:iif test="${mappingPropInfo.toMany}">
+                    <c:unit>
+                        <schema type="List&lt;String>" domain="ref-ids"/>
+                        <getter><![CDATA[
+                            import io.nop.orm.support.OrmEntityHelper;
+                            return OrmEntityHelper.getRefIds(
+                                 entity["${rel.name}"], "${mappingPropInfo.refPropNameInMappingTable}");
+                        ]]></getter>
+                        <setter><![CDATA[
+                            import io.nop.orm.support.OrmEntityHelper;
+                            OrmEntityHelper.setRefIds(
+                                 entity["${rel.name}"], "${mappingPropInfo.refPropNameInMappingTable}",value);
+                        ]]></setter>
+                    </c:unit>
+                    <c:unit>
+                        <schema type="String" domain="ref-id"/>
+                        <getter><![CDATA[
+                            import io.nop.orm.support.OrmEntityHelper;
+                            return OrmEntityHelper.getRefIdFromSingleton(
+                                 entity["${rel.name}"], "${mappingPropInfo.refPropNameInMappingTable}");
+                        ]]></getter>
+                        <setter><![CDATA[
+                            import io.nop.orm.support.OrmEntityHelper;
+                            OrmEntityHelper.setRefIdFromSingleton(
+                                 entity["${rel.name}"], "${mappingPropInfo.refPropNameInMappingTable}",value);
+                        ]]></setter>
+                    </c:unit>
+                </c:iif>
+            </prop>
+
+            <prop name="${mappingPropInfo.mappingLabelProp}" displayName="${mappingPropInfo.displayName}"
+                  i18n-en:displayName="${mappingPropInfo.enDisplayName}" published="${published}"
+                  xpl:if="mappingPropInfo" internal="true" depends="~${rel.name}" lazy="true">
+                <schema type="String" />
+                <getter><![CDATA[
+                    import io.nop.orm.support.OrmEntityHelper;
+                    return OrmEntityHelper.getLabelForRefProps(
+                         entity["${rel.name}"], "${mappingPropInfo.refPropNameInMappingTable}");
+                ]]></getter>
+            </prop>
+
+        </c:for>
+    </props>
+
+    <meta-gen:GenMetaExt entityModel="${entityModel}" xpl:lib="/nop/codegen/xlib/meta-gen.xlib"/>
+</meta>

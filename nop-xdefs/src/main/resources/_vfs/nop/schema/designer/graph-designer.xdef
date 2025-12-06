@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+@editorType [编辑器类型] 比如flow-builder对应于类似钉钉的审批流编辑
+-->
+<designer x:schema="/nop/schema/xdef.xdef" xmlns:x="/nop/schema/xdsl.xdef"
+          editorType="string" codeGenLib="v-path" framework="var-name"
+          xmlns:xdef="/nop/schema/xdef.xdef" xdef:name="GraphDesignerModel"
+          xdef:bean-package="io.nop.web.page.graph_designer.model">
+
+    <zoom initialValue="int" min="int" max="int" step="int" xdef:name="GraphDesignerZoomModel"/>
+
+    <style xdef:value="string"/>
+
+    <!-- 类似于React中styled-component的封装 -->
+    <style-components xdef:body-type="list" xdef:key-attr="name">
+        <style-component name="!var-name" xdef:ref="../xui/style-component.xdef"/>
+    </style-components>
+
+    <control-bar xdef:value="xml"/>
+
+    <imports xdef:body-type="list" xdef:key-attr="as">
+        <import as="!var-name=@attr:name" xdef:ref="../xui/import.xdef"/>
+    </imports>
+
+    <components xdef:body-type="list" xdef:key-attr="name">
+        <component name="!var-name" xdef:ref="../xui/simple-component.xdef"/>
+    </components>
+
+    <nodes xdef:body-type="list" xdef:key-attr="name">
+        <!--
+        @shape 矩形、圆形等基础形状
+        @propsForm 属性表单
+        @allowParents 允许嵌入在哪些容器类型中。如果不配置，则允许嵌入到任意容器中
+        @kind start表示起始节点，end表示结束节点，normal表示一般节点
+        -->
+        <node name="!token-name" icon="string" label="!string" abstract="boolean" tagSet="csv-set" propsForm="string"
+              base="token-name" shape="string" minWidth="int" maxWidth="int" minHeight="int" maxHeight="int"
+              width="int" height="int" fixedAspectRatio="boolean" kind="string"
+              draggable="!boolean=true" resizable="boolean" color="string"
+              deletable="!boolean=true" addable="!boolean=true"
+              textPosition="string" textDraggable="boolean"
+              minOccurs="int" maxOccurs="int"
+              allowParents="csv-set" xdef:name="GraphDesignerNodeModel"
+              layout="string" allowChildren="csv-set"
+        >
+            <style xdef:value="string"/>
+
+            <template xdef:value="vue-node"/>
+
+            <anchors xdef:body-type="list" xdef:key-attr="name">
+                <anchor name="!string" position="string" tagSet="csv-set" xdef:name="GraphDesignerAnchorModel"/>
+            </anchors>
+        </node>
+    </nodes>
+
+    <edges xdef:body-type="list" xdef:key-attr="name">
+        <!--
+        @propsForm 属性表单
+        -->
+        <edge name="!token-name" icon="!string" label="!string" abstract="boolean" tagSet="csv-set" propsForm="string"
+              base="token-name" shape="string" width="int" xdef:name="GraphDesignerEdgeModel" kind="string" color="string"
+              deletable="!boolean=true" addable="!boolean=true" minOccurs="int" maxOccurs="int"
+              allowSources="csv-set" allowTargets="csv-set" type="string">
+            <style xdef:value="string"/>
+            <template xdef:value="vue-node"/>
+        </edge>
+    </edges>
+
+    <forms xdef:body-type="list" xdef:key-attr="id">
+        <form id="!string" xdef:ref="../xui/form.xdef"/>
+    </forms>
+
+    <script xdef:value="string"/>
+</designer>

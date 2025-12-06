@@ -1,0 +1,55 @@
+<!--
+@importAllTables 导入inputDir目录下的所有表
+@checkKeyFields 导入时是否根据keyFields设置检查记录是否已存在。如果存在，则可以选择更新或者忽略
+-->
+<import-db x:schema="/nop/schema/xdef.xdef" xmlns:x="/nop/schema/xdsl.xdef"
+           xmlns:xdef="/nop/schema/xdef.xdef"
+           threadCount="!int=0" batchSize="!int=0" concurrencyPerTable="int"
+           schemaPattern="string" tableNamePattern="string" importAllTables="!boolean=true"
+           xdef:name="ImportDbConfig" xdef:bean-package="io.nop.dbtool.exp.config"
+           checkKeyFields="!boolean=true"
+>
+    <jdbc-connection xdef:ref="jdbc-connection.xdef" xdef:support-extends="true"/>
+
+    <inputDir xdef:value="!string"/>
+
+    <excludeTableNames xdef:value="csv-set"/>
+
+    <checkImportable xdef:value="xpl-fn:(table)=>boolean"/>
+
+    <beforeImport xdef:value="xpl"/>
+
+    <afterImport xdef:value="xpl"/>
+
+    <tables xdef:body-type="list" xdef:key-attr="name">
+        <!--
+        @format 导入文件的后缀名
+        @importAllFields 导入所有字段，不仅仅是fields指定的字段
+        @allowUpdate 导入的时候如果根据keyFields查询到的记录已存在，在更新行。如果不设置或者设置为false，则数据重复时会忽略该行
+        -->
+        <table name="!string" from="string" format="string" xdef:name="ImportTableConfig" concurrency="int"
+               importAllFields="!boolean=true" allowUpdate="boolean" maxSkipCount="int">
+
+            <!-- 用于指定记录对应的唯一键 -->
+            <keyFields xdef:value="csv-list"/>
+
+            <!--
+             用于过滤导入文件中的记录。input变量对应于每一行数据
+            -->
+            <filter xdef:value="xpl-fn:(input)=>boolean"/>
+
+            <fields xdef:body-type="list" xdef:key-attr="name">
+                <field name="!string" xdef:ref="table-field.xdef"/>
+            </fields>
+
+            <!--
+            可以对行数据进行转换，input对应于来源行，output对应于转换后的行
+            -->
+            <transformExpr xdef:value="xpl"/>
+
+            <beforeImport xdef:value="xpl-fn:(table)=>void"/>
+
+            <afterImport xdef:value="xpl-fn:(table)=>void"/>
+        </table>
+    </tables>
+</import-db>

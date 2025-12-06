@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+ 定长记录文件的描述
+
+ @binary 是否是二进制文件。如果否，则表示是文本文件
+ @defaultTextEncoding 如果是文本文件，则这里指定文件的缺省语言编码。
+-->
+<file x:schema="/nop/schema/xdef.xdef"
+      xmlns:x="/nop/schema/xdsl.xdef"
+      xmlns:xdef="/nop/schema/xdef.xdef"
+      xdef:name="RecordFileMeta" xdef:bean-package="io.nop.record.model"
+      xdef:ref="record-definitions.xdef">
+    <doc xdef:value="string"/>
+
+    <!--
+    翻译为java doc的@see注释
+    -->
+    <docRef xdef:value="string"/>
+
+    <params xdef:body-type="list" xdef:key-attr="name">
+        <param name="!string" xdef:ref="record-param.xdef"/>
+    </params>
+
+    <header xdef:ref="record-object.xdef"/>
+
+    <body xdef:name="RecordFileBodyMeta" repeatKind="enum:io.nop.record.model.FieldRepeatKind"
+          xdef:ref="record-object.xdef" repeatCountFieldName="prop-path">
+
+        <repeatCountField xdef:ref="record-simple-field.xdef"/>
+
+        <!--
+        返回body行的循环次数
+        -->
+        <repeatCountExpr xdef:value="xpl-fn:(input,record,ctx)=>int"/>
+
+        <!--
+        返回body行循环的终止条件
+        -->
+        <repeatUntil xdef:value="xpl-fn:(input,record,ctx)=>boolean"/>
+    </body>
+
+    <!--
+    分页生成，每页包含指定条目数，并且有可能会具有页头和页尾
+    @pageSize 分页条目数
+    -->
+    <pagination pageSize="!int" xdef:name="RecordPaginationMeta">
+        <pageHeader xdef:ref="record-object.xdef"/>
+        <pageFooter xdef:ref="record-object.xdef"/>
+
+        <aggregates xdef:body-type="list" xdef:key-attr="name">
+            <!-- 输出时自动计算一些汇总值 -->
+            <aggregate name="!prop-name" aggFunc="var-name" xdef:name="RecordAggregateFieldMeta"
+                       prop="string">
+                <valueExpr xdef:value="xpl-fn:(record,ctx)=>any"/>
+            </aggregate>
+        </aggregates>
+    </pagination>
+
+    <aggregates xdef:body-type="list" xdef:key-attr="name">
+        <aggregate name="!prop-name" xdef:ref="RecordAggregateFieldMeta"/>
+    </aggregates>
+
+    <trailer xdef:ref="record-object.xdef"/>
+
+    <beforeWrite xdef:value="xpl-fn:(out,ctx)=>any"/>
+
+    <afterWrite xdef:value="xpl-fn:(out,ctx)=>any"/>
+
+    <beforeRead xdef:value="xpl-fn:(input,ctx)=>any"/>
+
+    <afterRead xdef:value="xpl-fn:(input,ctx)=>any"/>
+</file>

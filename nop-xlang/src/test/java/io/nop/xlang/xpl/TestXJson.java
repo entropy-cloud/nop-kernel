@@ -1,0 +1,74 @@
+/**
+ * Copyright (c) 2017-2024 Nop Platform. All rights reserved.
+ * Author: canonical_entropy@163.com
+ * Blog:   https://www.zhihu.com/people/canonical-entropy
+ * Gitee:  https://gitee.com/canonical-entropy/nop-entropy
+ * Github: https://github.com/entropy-cloud/nop-entropy
+ */
+package io.nop.xlang.xpl;
+
+import io.nop.core.lang.eval.IEvalScope;
+import io.nop.core.lang.json.JsonTool;
+import io.nop.core.lang.xml.XNode;
+import io.nop.core.lang.xml.json.CompactXNodeToJsonTransformer;
+import io.nop.core.lang.xml.parse.XNodeParser;
+import io.nop.xlang.api.ExprEvalAction;
+import io.nop.xlang.api.XLang;
+import io.nop.xlang.api.XLangCompileTool;
+import io.nop.xlang.ast.XLangOutputMode;
+import org.junit.jupiter.api.Test;
+
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class TestXJson {
+    @Test
+    public void testNullValue() {
+        String xml = "<root><title>${value}</title></root>";
+        XNode node = XNodeParser.instance().parseFromText(null, xml);
+
+        IEvalScope scope = XLang.newEvalScope();
+        scope.setLocalValue(null, "value", null);
+
+        ExprEvalAction action = newTool().compileTag(node, XLangOutputMode.xml);
+        assertEquals("\n<root>\n<title></title></root>", action.generateText(scope));
+
+        action = newTool().compileTag(node, XLangOutputMode.node);
+        assertEquals("<_><root><title/></root></_>", action.generateNode(scope).outerXml(false, false));
+
+        node = XNodeParser.instance().forFragments(true).parseFromText(null, xml);
+        action = newTool().compileXjson(node);
+        Map<String, Object> obj = (Map<String, Object>) action.invoke(scope);
+        assertEquals("{\"type\":\"root\",\"title\":null}", JsonTool.serialize(obj, false));
+    }
+
+    @Test
+    public void testEmptyMap() {
+        String xml = "<api url='a'><data>@:{}</data></api>";
+        XNode node = XNode.parse(xml);
+        Object json = node.toXJson();
+        assertEquals("{\"url\":\"a\",\"data\":{}}", JsonTool.stringify(json));
+        assertEquals("{\"type\":\"api\",\"url\":\"a\",\"data\":{}}", JsonTool.stringify(node.toXJson(true)));
+        assertEquals("{\"data\":{}}", JsonTool.stringify(node.bodyToXJson()));
+    }
+
+    @Test
+    public void testContent() {
+        String xml = "<data>@:{}</data>";
+        XNode node = XNode.parse(xml);
+        assertEquals("{}", JsonTool.stringify(node.toXJson()));
+    }
+
+    @Test
+    public void testSpecialKey() {
+        String xml = "<form><data><_ j:key='&amp;'>$$</_></data></form>";
+        XNode node = XNodeParser.instance().parseFromText(null, xml);
+        Object json = new CompactXNodeToJsonTransformer().transformToObject(node);
+        assertEquals("{\"type\":\"form\",\"data\":{\"&\":\"$$\"}}", JsonTool.serialize(json, false));
+    }
+
+    XLangCompileTool newTool() {
+        return XLang.newCompileTool().allowUnregisteredScopeVar(true);
+    }
+}
